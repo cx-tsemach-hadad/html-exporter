@@ -1,0 +1,18 @@
+# Existing .github/workflows/build.yml (JDK 11 "adopt", `mvn package`, on: push only) does run the 52 tests and JDK 11 passes locally,
+# but it has no pull_request trigger (remediation PRs from forks/branches would not be checked) and uses the deprecated adopt distribution.
+# Proposed replacement below: JDK 8 (pom target, verified), push + pull_request, 15-min timeout.
+name: build-and-test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: '8'   # verified locally with Corretto 1.8.0_432
+          cache: maven
+      - name: Build and test
+        run: mvn -B -ntp clean verify -Dgpg.skip -Dmaven.javadoc.skip=true
